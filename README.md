@@ -1,5 +1,7 @@
 # Integração Java + Python
 
+[![CI](https://github.com/LuisMarangoni/java-python-integration/actions/workflows/ci.yml/badge.svg)](https://github.com/LuisMarangoni/java-python-integration/actions/workflows/ci.yml)
+
 Aplicação Python que importa chamados de um arquivo CSV para uma API REST desenvolvida com Java e Spring Boot.
 
 Este projeto integra o processamento de dados em Python com o projeto [Sistema de Chamados API](https://github.com/LuisMarangoni/sistema-chamados-api), responsável pela validação final e persistência no PostgreSQL.
