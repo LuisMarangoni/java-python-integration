@@ -14,10 +14,10 @@ def test_deve_continuar_apos_linha_invalida(
 
     caminho.write_text(
         (
-            "titulo,descricao,prioridade\n"
-            "Erro de rede,Sem internet,ALTA\n"
-            ",Linha sem titulo,BAIXA\n"
-            "Impressora offline,Nao imprime,MEDIA\n"
+            "titulo,descricao,prioridade,solicitante_id\n"
+            "Erro de rede,Sem internet,ALTA,42\n"
+            ",Linha sem titulo,BAIXA,42\n"
+            "Impressora offline,Nao imprime,MEDIA,42\n"
         ),
         encoding="utf-8",
     )

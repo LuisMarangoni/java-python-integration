@@ -17,9 +17,11 @@ Conversão para JSON
     ↓
 Requisição HTTP POST
     ↓
-API Java / Spring Boot
+Sistema de Chamados API
     ↓
-PostgreSQL
+Users API: autenticação JWT e validação do solicitante
+    ↓
+Persistência do chamado no PostgreSQL
 ```
 
 Linhas inválidas são registradas como falha sem interromper o processamento das demais linhas.
@@ -81,6 +83,8 @@ java-python-integration
 - Python 3.13 ou superior compatível
 - Git
 - Sistema de Chamados API em execução
+- Users API e seu PostgreSQL em execução
+- Conta de integração ativa na Users API, com perfil `SUPORTE` ou `ADMIN`
 
 Repositório da API Java:
 
@@ -114,8 +118,10 @@ Se a ativação for bloqueada, use diretamente:
 O arquivo deve possuir as colunas:
 
 ```csv
-titulo,descricao,prioridade
+titulo,descricao,prioridade,solicitante_id
 ```
+
+A coluna `solicitante_id` deve conter o ID numérico positivo de um usuário ativo cadastrado na Users API. O valor `1` nos exemplos é apenas ilustrativo: substitua-o pelo ID real do usuário antes de executar a importação. O Python envia esse campo à API Java como `solicitanteId`.
 
 Prioridades aceitas:
 
@@ -129,36 +135,50 @@ URGENTE
 Exemplo:
 
 ```csv
-titulo,descricao,prioridade
-Erro de rede,Usuário sem acesso à internet,ALTA
-Impressora offline,Equipamento não imprime documentos,MEDIA
+titulo,descricao,prioridade,solicitante_id
+Erro de rede,Usuário sem acesso à internet,ALTA,1
+Impressora offline,Equipamento não imprime documentos,MEDIA,1
 ```
 
 O arquivo `data/chamados.csv` contém também linhas inválidas intencionais para demonstrar o tratamento de falhas.
 
-## Executando a API Java
+## Preparando as APIs
 
-Clone e configure o projeto:
+Configure primeiro a [Users API](https://github.com/LuisMarangoni/users-api), seguindo o README desse projeto. Ela deve estar acessível na porta `8081`, com seu banco ligado.
+
+A conta usada pelo Sistema de Chamados para consultar usuários deve estar ativa e possuir o perfil `SUPORTE` (suficiente para a integração) ou `ADMIN`. O cadastro padrão com perfil `USUARIO` não permite essa consulta. Após alterar perfis, faça um novo login para obter um token atualizado.
+
+Depois configure o Sistema de Chamados API:
 
 ```text
 https://github.com/LuisMarangoni/sistema-chamados-api
 ```
 
-Com o PostgreSQL e a variável `DB_PASSWORD` configurados, execute no projeto Java:
+No `.env` desse projeto, configure `DB_PASSWORD`, `USERS_API_EMAIL` e `USERS_API_PASSWORD`. As duas últimas variáveis são as credenciais de login da conta de integração, não as credenciais do PostgreSQL. Não versione o `.env` nem tokens.
+
+Com o Docker Desktop ligado, execute na pasta do Sistema de Chamados:
 
 ```powershell
-.\mvnw.cmd spring-boot:run
+docker compose up -d --build
 ```
 
-A API deverá estar disponível em:
+O Compose conecta a API em container à Users API no host por `http://host.docker.internal:8081`. Aguarde a inicialização da aplicação. O Sistema de Chamados deverá estar disponível em:
 
 ```text
 http://localhost:8080
 ```
 
+Se alterar as credenciais da integração ou seus perfis durante os testes, recrie o container da API para carregar o ambiente atualizado e descartar o token em memória:
+
+```powershell
+docker compose up -d --force-recreate api
+```
+
+O importador Python não precisa receber o token: o Sistema de Chamados realiza o login na Users API. O `solicitante_id` do CSV identifica o usuário ativo vinculado ao chamado; não precisa ser a mesma conta usada para autenticar a integração.
+
 ## Executando a importação
 
-Com a API Java em execução:
+Com as duas APIs e seus bancos em execução:
 
 ```powershell
 python -m src.importador
@@ -171,6 +191,8 @@ logs/importacao.log
 ```
 
 A pasta `logs` não é versionada.
+
+Com o CSV de exemplo de quatro registros e IDs de solicitantes ativos ajustados ao seu banco, o resultado esperado é **2 sucessos e 2 falhas de validação** (título vazio e prioridade inválida), com código de saída `1`. Os registros válidos são gravados no banco local; repetir a importação cria novos chamados.
 
 ## Configuração opcional
 

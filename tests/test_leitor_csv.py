@@ -27,6 +27,6 @@ def test_deve_rejeitar_csv_sem_colunas_obrigatorias(
 
     with pytest.raises(
             ValueError,
-            match="Colunas obrigatórias ausentes: prioridade",
+            match="Colunas obrigatórias ausentes: prioridade, solicitante_id",
     ):
         list(ler_linhas_csv(caminho))

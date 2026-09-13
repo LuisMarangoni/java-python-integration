@@ -1,5 +1,5 @@
-titulo,descricao,prioridade
-Erro de rede,Usuário sem acesso à internet,ALTA
-Impressora offline,Equipamento não imprime documentos,MEDIA
-,Descrição sem título,BAIXA
-Servidor lento,Sistema apresenta lentidão,MUITO_ALTA
+titulo,descricao,prioridade,solicitante_id
+Erro de rede,Usuário sem acesso à internet,ALTA,3
+Impressora offline,Equipamento não imprime documentos,MEDIA,3
+,Descrição sem título,BAIXA,3
+Servidor lento,Sistema apresenta lentidão,MUITO_ALTA,3

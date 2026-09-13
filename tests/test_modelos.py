@@ -8,6 +8,7 @@ def test_deve_normalizar_chamado_valido():
         "titulo": "  Erro de rede  ",
         "descricao": "  Sem acesso à internet  ",
         "prioridade": "alta",
+        "solicitante_id": "42",
     }
 
     chamado = ChamadoEntrada.from_dict(dados)
@@ -15,6 +16,8 @@ def test_deve_normalizar_chamado_valido():
     assert chamado.titulo == "Erro de rede"
     assert chamado.descricao == "Sem acesso à internet"
     assert chamado.prioridade == "ALTA"
+    assert chamado.solicitante_id == 42
+    assert chamado.to_json()["solicitanteId"] == 42
 
 
 def test_deve_rejeitar_titulo_ausente():
@@ -22,6 +25,7 @@ def test_deve_rejeitar_titulo_ausente():
         "titulo": "",
         "descricao": "Sem acesso à internet",
         "prioridade": "ALTA",
+        "solicitante_id": "42",
     }
 
     with pytest.raises(
@@ -36,6 +40,7 @@ def test_deve_rejeitar_prioridade_invalida():
         "titulo": "Servidor lento",
         "descricao": "Sistema apresenta lentidão",
         "prioridade": "MUITO_ALTA",
+        "solicitante_id": "42",
     }
 
     with pytest.raises(

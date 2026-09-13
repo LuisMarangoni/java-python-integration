@@ -12,6 +12,7 @@ def criar_chamado_exemplo() -> ChamadoEntrada:
         titulo="Erro de rede",
         descricao="Sem conexão",
         prioridade="ALTA",
+        solicitante_id=42,
     )
 
 
@@ -45,6 +46,7 @@ def test_deve_enviar_chamado_e_retornar_json():
             "titulo": "Erro de rede",
             "descricao": "Sem conexão",
             "prioridade": "ALTA",
+            "solicitanteId": 42,
         },
         timeout=3.0,
     )

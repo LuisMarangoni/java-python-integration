@@ -7,6 +7,7 @@ COLUNAS_OBRIGATORIAS = {
     "titulo",
     "descricao",
     "prioridade",
+    "solicitante_id",
 }
 
 
