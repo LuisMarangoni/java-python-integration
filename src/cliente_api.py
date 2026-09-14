@@ -44,13 +44,26 @@ class ClienteChamadosApi:
             raise ErroIntegracao(
                 f"API retornou HTTP {resposta.status_code}: {detalhe}"
             )
-
         try:
-            return resposta.json()
+            conteudo = resposta.json()
         except ValueError as erro:
             raise ErroIntegracao(
                 "API retornou uma resposta que não é um JSON válido"
             ) from erro
+
+        if not isinstance(conteudo, dict):
+            raise ErroIntegracao(
+                "API retornou uma resposta com formato inválido"
+            )
+
+        id_chamado = conteudo.get("id")
+
+        if type(id_chamado) is not int or id_chamado <= 0:
+            raise ErroIntegracao(
+                "API retornou uma resposta sem ID inteiro positivo"
+            )
+
+        return conteudo
 
     @staticmethod
     def _extrair_detalhe_erro(

@@ -51,6 +51,7 @@ Java, Spring Boot e PostgreSQL são utilizados pela API consumida.
 - Timeout nas requisições
 - Tratamento de erros HTTP
 - Tratamento de falhas de conexão
+- Validação da resposta de criação: objeto JSON com ID inteiro positivo
 - Continuação do processo após linhas inválidas
 - Registro de sucessos e falhas em arquivo de log
 - Resumo final da importação
@@ -194,6 +195,12 @@ A pasta `logs` não é versionada.
 
 Com o CSV de exemplo de quatro registros e IDs de solicitantes ativos ajustados ao seu banco, o resultado esperado é **2 sucessos e 2 falhas de validação** (título vazio e prioridade inválida), com código de saída `1`. Os registros válidos são gravados no banco local; repetir a importação cria novos chamados.
 
+## Respostas inválidas e repetição da importação
+
+Uma criação só é contabilizada como sucesso quando a API retorna `201 Created` e um objeto JSON com `id` inteiro positivo. Respostas `null`, listas, valores simples, objetos sem ID ou com ID inválido são tratadas como falhas de integração. Valores booleanos não são aceitos como IDs.
+
+O importador registra a falha e continua processando as próximas linhas. Isso não desfaz uma criação que já tenha ocorrido no servidor: um timeout ou uma resposta inválida pode impedir a confirmação mesmo que o chamado tenha sido gravado. Antes de repetir uma linha nessa situação, confira o banco ou consulte a API. Não há repetição automática nem garantia de idempotência; reenviar pode gerar duplicados.
+
 ## Configuração opcional
 
 A URL da API e o caminho do CSV podem ser modificados por variáveis de ambiente:
@@ -241,8 +248,11 @@ A suíte testa:
 - ausência de colunas obrigatórias;
 - requisição HTTP de criação;
 - respostas de erro da API;
+- rejeição de JSON nulo ou com formato inesperado;
+- rejeição de ID ausente, nulo, não inteiro, booleano ou não positivo;
 - falhas de conexão;
-- continuação após uma linha inválida.
+- continuação após uma linha inválida;
+- continuação do lote após resposta inválida da API, usando o cliente real com a sessão HTTP simulada.
 
 Os testes usam mocks e arquivos temporários. Não exigem que a API Java ou o PostgreSQL estejam em execução.
 
@@ -251,7 +261,7 @@ Os testes usam mocks e arquivos temporários. Não exigem que a API Java ou o Po
 - `dataclass(frozen=True)` representa entradas imutáveis.
 - O leitor aceita arquivos UTF-8 com ou sem BOM.
 - Cada linha é validada antes da chamada HTTP.
-- O cliente exige `201 Created` para considerar uma criação bem-sucedida.
+- O cliente exige `201 Created` e um objeto JSON com ID inteiro positivo para confirmar uma criação bem-sucedida.
 - Todas as requisições possuem timeout.
 - Exceções de rede são convertidas em erros próprios da integração.
 - Uma linha inválida não interrompe o lote.

@@ -86,3 +86,71 @@ def test_deve_tratar_falha_de_conexao():
             match="Não foi possível conectar",
     ):
         cliente.criar_chamado(criar_chamado_exemplo())
+
+
+def test_deve_rejeitar_resposta_json_nula():
+    sessao = Mock(spec=requests.Session)
+    resposta = Mock(spec=requests.Response)
+
+    resposta.status_code = 201
+    resposta.json.return_value = None
+    sessao.post.return_value = resposta
+
+    cliente = ClienteChamadosApi(sessao=sessao)
+
+    with pytest.raises(
+            ErroIntegracao,
+            match="API retornou uma resposta com formato inválido",
+    ):
+        cliente.criar_chamado(criar_chamado_exemplo())
+
+
+@pytest.mark.parametrize(
+    "conteudo",
+    [[], "texto", 123, True],
+)
+def test_deve_rejeitar_resposta_que_nao_seja_objeto(conteudo):
+    sessao = Mock(spec=requests.Session)
+    resposta = Mock(spec=requests.Response)
+
+    resposta.status_code = 201
+    resposta.json.return_value = conteudo
+    sessao.post.return_value = resposta
+
+    cliente = ClienteChamadosApi(sessao=sessao)
+
+    with pytest.raises(
+            ErroIntegracao,
+            match="API retornou uma resposta com formato inválido",
+    ):
+        cliente.criar_chamado(criar_chamado_exemplo())
+
+
+@pytest.mark.parametrize(
+    "conteudo",
+    [
+        {},
+        {"id": None},
+        {"id": 0},
+        {"id": -1},
+        {"id": "1"},
+        {"id": 1.5},
+        {"id": True},
+        {"id": False},
+    ],
+)
+def test_deve_rejeitar_resposta_sem_id_inteiro_positivo(conteudo):
+    sessao = Mock(spec=requests.Session)
+    resposta = Mock(spec=requests.Response)
+
+    resposta.status_code = 201
+    resposta.json.return_value = conteudo
+    sessao.post.return_value = resposta
+
+    cliente = ClienteChamadosApi(sessao=sessao)
+
+    with pytest.raises(
+            ErroIntegracao,
+            match="API retornou uma resposta sem ID inteiro positivo",
+    ):
+        cliente.criar_chamado(criar_chamado_exemplo())
